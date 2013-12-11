@@ -224,7 +224,7 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
   coap_packet_t *const coap_req = (coap_packet_t *) request;
   coap_packet_t *const coap_res = (coap_packet_t *) response;
 
-  static char content[16];
+  //static char content[16];
 
   if (coap_req->code==COAP_GET && coap_res->code<128) /* GET request and response without error code */
   {
@@ -238,7 +238,7 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
          * For demonstration purposes only. A subscription should return the same representation as a normal GET.
          * TODO: Comment the following line for any real application.
          */
-        coap_set_payload(coap_res, content, snprintf(content, sizeof(content), "Added %u/%u", list_length(observers_list), COAP_MAX_OBSERVERS));
+        //coap_set_payload(coap_res, content, snprintf(content, sizeof(content), "Added %u/%u", list_length(observers_list), COAP_MAX_OBSERVERS));
       }
       else
       {
