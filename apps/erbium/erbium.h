@@ -157,6 +157,10 @@ struct periodic_resource_s {
   uint32_t period;
   struct etimer periodic_timer;
   restful_periodic_handler periodic_handler;
+  #if COAP_OBS_AVOID_AUTO_SYNC
+  struct etimer avoid_autosync_timer; /* to avoid auto sync when one node have many obs resouces with same period*/
+  char time_to_get_handler;
+  #endif
 };
 typedef struct periodic_resource_s periodic_resource_t;
 

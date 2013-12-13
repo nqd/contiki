@@ -39,6 +39,7 @@
 #include "contiki.h"
 #include <string.h> /*for string operations in match_addresses*/
 #include <stdio.h> /*for sprintf in rest_set_header_**/
+#include "random.h"
 
 #include "erbium.h"
 
@@ -210,6 +211,9 @@ PROCESS_THREAD(rest_manager_process, ev, data)
     if (periodic_resource->period) {
       PRINTF("Periodic: Set timer for %s to %lu\n", periodic_resource->resource->url, periodic_resource->period);
       etimer_set(&periodic_resource->periodic_timer, periodic_resource->period);
+      #if COAP_OBS_AVOID_AUTO_SYNC
+      periodic_resource->time_to_get_handler = 0;
+      #endif
     }
   }
 
@@ -217,16 +221,34 @@ PROCESS_THREAD(rest_manager_process, ev, data)
     PROCESS_WAIT_EVENT();
     if (ev == PROCESS_EVENT_TIMER) {
       for (periodic_resource = (periodic_resource_t*)list_head(restful_periodic_services);periodic_resource;periodic_resource = periodic_resource->next) {
+        #if COAP_OBS_AVOID_AUTO_SYNC
+        if ((periodic_resource->period) &&
+          (etimer_expired(&periodic_resource->periodic_timer) || etimer_expired(&periodic_resource->avoid_autosync_timer) ))
+        {
+          if (etimer_expired(&periodic_resource->periodic_timer)) {
+            PRINTF("etimer expired for /%s (period: %lu)\n", periodic_resource->resource->url, periodic_resource->period);
+            etimer_reset(&periodic_resource->periodic_timer);
+            etimer_set(&periodic_resource->avoid_autosync_timer, random_rand()%(periodic_resource->period)/2);
+            periodic_resource->time_to_get_handler = 1;
+          } 
+          else if (periodic_resource->time_to_get_handler == 1) {
+            periodic_resource->time_to_get_handler = 0;
+            printf("avoid autosync for /%s\n", periodic_resource->resource->url);
+            /* Call the periodic_handler function if it exists. */
+            if (periodic_resource->periodic_handler) {
+              (periodic_resource->periodic_handler)(periodic_resource->resource);
+            }
+          } /* end timer */
+        }
+        #else /* COAP_OBS_AVOID_AUTO_SYNC */
         if (periodic_resource->period && etimer_expired(&periodic_resource->periodic_timer)) {
-
-          PRINTF("Periodic: etimer expired for /%s (period: %lu)\n", periodic_resource->resource->url, periodic_resource->period);
-
-          /* Call the periodic_handler function if it exists. */
+          printf("etimer expired for /%s (period: %lu)\n", periodic_resource->resource->url, periodic_resource->period);
           if (periodic_resource->periodic_handler) {
             (periodic_resource->periodic_handler)(periodic_resource->resource);
           }
           etimer_reset(&periodic_resource->periodic_timer);
         }
+        #endif /* COAP_OBS_AVOID_AUTO_SYNC */
       }
     }
   }
