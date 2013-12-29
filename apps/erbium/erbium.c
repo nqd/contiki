@@ -233,7 +233,7 @@ PROCESS_THREAD(rest_manager_process, ev, data)
           } 
           else if (periodic_resource->time_to_get_handler == 1) {
             periodic_resource->time_to_get_handler = 0;
-            printf("avoid autosync for /%s\n", periodic_resource->resource->url);
+            PRINTF("avoid autosync for /%s\n", periodic_resource->resource->url);
             /* Call the periodic_handler function if it exists. */
             if (periodic_resource->periodic_handler) {
               (periodic_resource->periodic_handler)(periodic_resource->resource);
@@ -242,7 +242,7 @@ PROCESS_THREAD(rest_manager_process, ev, data)
         }
         #else /* COAP_OBS_AVOID_AUTO_SYNC */
         if (periodic_resource->period && etimer_expired(&periodic_resource->periodic_timer)) {
-          printf("etimer expired for /%s (period: %lu)\n", periodic_resource->resource->url, periodic_resource->period);
+          PRINTF("etimer expired for /%s (period: %lu)\n", periodic_resource->resource->url, periodic_resource->period);
           if (periodic_resource->periodic_handler) {
             (periodic_resource->periodic_handler)(periodic_resource->resource);
           }
