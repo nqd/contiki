@@ -559,27 +559,30 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
       coap_send_transaction(state->transaction);
       PRINTF("Requested #%lu (MID %u)\n", state->block_num, request->mid);
 
-      PT_YIELD_UNTIL(&state->pt, ev == PROCESS_EVENT_POLL);
+      // fix waiting forever when sending NON msg
+      if (request->type == COAP_TYPE_CON) {
+        PT_YIELD_UNTIL(&state->pt, ev == PROCESS_EVENT_POLL);
 
-      if (!state->response)
-      {
-        PRINTF("Server not responding\n");
-        PT_EXIT(&state->pt);
-      }
+        if (!state->response)
+        {
+          PRINTF("Server not responding\n");
+          PT_EXIT(&state->pt);
+        }
 
-      coap_get_header_block2(state->response, &res_block, &more, NULL, NULL);
+        coap_get_header_block2(state->response, &res_block, &more, NULL, NULL);
 
-      PRINTF("Received #%lu%s (%u bytes)\n", res_block, more ? "+" : "", state->response->payload_len);
+        PRINTF("Received #%lu%s (%u bytes)\n", res_block, more ? "+" : "", state->response->payload_len);
 
-      if (res_block==state->block_num)
-      {
-        request_callback(state->response);
-        ++(state->block_num);
-      }
-      else
-      {
-        PRINTF("WRONG BLOCK %lu/%lu\n", res_block, state->block_num);
-        ++block_error;
+        if (res_block==state->block_num)
+        {
+          request_callback(state->response);
+          ++(state->block_num);
+        }
+        else
+        {
+          PRINTF("WRONG BLOCK %lu/%lu\n", res_block, state->block_num);
+          ++block_error;
+        }
       }
     }
     else

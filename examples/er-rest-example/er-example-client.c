@@ -130,7 +130,7 @@ PROCESS_THREAD(coap_client_example, ev, data)
       printf("--Toggle timer--\n");
 
       /* prepare request, TID is set by COAP_BLOCKING_REQUEST() */
-      coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0 );
+      coap_init_message(request, COAP_TYPE_NON, COAP_POST, 0 );
       coap_set_header_uri_path(request, service_urls[1]);
 
       const char msg[] = "Toggle!";
