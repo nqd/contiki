@@ -566,6 +566,7 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
         if (!state->response)
         {
           PRINTF("Server not responding\n");
+          request_callback(state->response);
           PT_EXIT(&state->pt);
         }
 
